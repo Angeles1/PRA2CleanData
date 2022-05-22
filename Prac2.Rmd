@@ -21,54 +21,138 @@ library(dplyr)
 # ggplot
 if (!require('ggplot2')) install.packages('ggplot2')
 library(ggplot2)
-
+library(VIM)
 red_col <- "#cc4533"
 ```
 
 ## 1. Descripción del dataset. ¿Por qué es importante y qué pregunta/problema pretende responder?
 
-El dataset está formado por las siguientes variables:
-- PassengerId: Número identificador del pasajero.
-- Survived: Variable dicotómica que indica si el pasajero sobrevivió al naufragio del Titanic o no.
-- Pclass: Clase a la que pertenecía el pasajero.
-- Name: Nombre y apellidos del pasajero.
-- Sex: Género del pasajero.
-- Age: Edad del pasajero.
-- SibSp: Número de hermanos o de cónyuges que tenía el pasajero a bordo.
-- Parch: Número de hijos o padres que tenía el pasajero a bordo.
-- Ticket: Número identificador del ticket.
-- Fare: Tarifa del billete del pasajero en libras esterlinas.
-- Cabin: Cabina asignada al pasajero.
-- Embarked: Puerto en el que embarcó el pasajero.
+*Estado del arte*
+El Titanic....
 
-## 2. Integración y selección de los datos de interés a analizar. Puede ser el resultado de adicionar diferentes datasets o una subselección útil de los datos originales, en base al objetivo que se quiera conseguir.
+*Justificación*
+El problema asdsad...
+
+
+El dataset está formado por las siguientes variables:
+
+
+| Variable    | Definición                                                            | Clave                                            |
+|-------------|-----------------------------------------------------------------------|--------------------------------------------------|
+| PassengerId | Número identificador del pasajero                                     |                                                  |
+| Survived    | Variable dicotómica que indica si el pasajero sobrevivió al naufragio | 0 = No, 1 = Yes                                  |
+| Pclass      | Ticked de Clase a la que pertenecía el pasajero                       | 1 = 1st, 2 = 2nd, 3 = 3rd                        |
+| Name        | Nombre y apellidos del pasajero                                       |                                                  |
+| Sex         | Género del pasajero                                                   |                                                  |
+| Age         | Edad del pasajero                                                     |                                                  |
+| SibSp       | Número de hermanos o de cónyuges que tenía el pasajero a bordo        |                                                  |
+| Parch       | Número de hijos o padres que tenía el pasajero a bordo                |                                                  |
+| Ticket      | Número identificador del ticket                                       |                                                  |
+| Fare        | Tarifa del billete del pasajero en libras esterlinas                  |                                                  |
+| Cabin       | Cabina asignada al pasajero                                           |                                                  |
+| Embarked    | Puerto en el que embarcó el pasajero                                  | C = Cherbourg, Q = Queenstown, S = Southampton   |
+
+
+
+
+
+## 2. Integración y selección de datos de interés
+
+Integración y selección de los datos de interés a analizar. Puede ser el resultado de adicionar diferentes datasets o una subselección útil de los datos originales, en base al objetivo que se quiera conseguir.
 
 Cargamos el conjunto de datos y observamos que está formado por 891 registros y las 12 variables comentadas en el apartado anterior.
 ```{r}
-df <- read.csv('train.csv')
-dim(df)
+df.origen <- read.csv('train.csv')
+dim(df.origen)
 ```
 ```{r}
-head(df)
+head(df.origen)
 ```
 
 Las variables *Name* y *Ticket* no serán de utilidad para los análisis estadísticos por lo que las eliminaremos.
 ```{r}
-df <- df %>% select(-c(Name, Ticket))
+df <- df.origen %>% select(-c(Name, Ticket))
 head(df)
+```
+Observamos que los atributos cualitativos *Pclass* y *Sex* no se han cargado como tipo Factor, por lo que se ajustan los tipos de las variables:
+
+```{r}
+unique(df$Pclass)
+class(df$Pclass)
+df$Pclass<-factor(df$Pclass)
+class(df$Pclass)
+
+unique(df$Sex)
+class(df$Sex)
+df$Sex<-factor(df$Sex)
+class(df$Sex)
+
+unique(df$Cabin)
+class(df$Cabin)
+df$Cabin<-factor(df$Cabin)
+class(df$Cabin)
+
+
 ```
 
 ## 3. Limpieza de los datos.
 
 ### 3.1 Valores perdidos.
-Observamos que la variable *Age* tiene 177 valores nulos. Eliminamos los registros con valores nulos en esta variable.
+
+una de las tecnicas de limpieza de los datos es
+
 ```{r}
 summary(df)
 ```
+Observamos que la variable *Age* tiene 177 valores nulos, si eliminamos estos registros perdemos un 10% de los datos del conjunto, por lo que procedemos a evaluarlos para realizar la imputación de estos registros. Analizaremos si existe alguna relación con otros factores, como *PClass* y *Age*
+
 ```{r}
-df <- na.omit(df,Age)
-summary(df)
+
+sum(is.na(df$Age))
+sum(is.na(df[df$Pclass == 1,]$Age))
+sum(is.na(df[df$Pclass == 2,]$Age))
+sum(is.na(df[df$Pclass == 3,]$Age))
+
+
 ```
+Se observa que existen 177 valores perdidos en las edades de los pasajeros del Titanic, y que además la mayor parte (136) pertenece a los pasajeros de tercera clase. Este dato puede ser interesante para el estudio y conclusiones del análisis.
+
+Procedemos a agrupar los registros perdidos en la tercera clase para ver si existe relación con el género de los pasajeros.
+
+```{r}
+df.NA <- df %>%  filter(is.na(df$Age))
+
+p <- ggplot(data = df.NA, aes(Pclass, PassengerId, fill = Sex))
+p + geom_bar(stat = "identity", names.arg = df.NA$Pclass)
+
+```
+
+
+
+```{r}
+#Función de Imputación de los registros de edad mediante la técnica de clustering kNN
+age_imput<- function( pClass){
+    df.pClass <- df[df$Pclass == pClass,]
+    df.m <- df.pClass[df.pClass$Sex == 'male',]
+    df.f <- df.pClass[df.pClass$Sex == 'female',]
+
+    df.f <- kNN(df.f, variable= c("Age"), k=11)
+    df.m <- kNN(df.m, variable= c("Age"), k=11)
+    rbind(df.m, df.f)
+
+}
+
+```
+
+```{r}
+summary (df$Age)
+df <- rbind(age_imput(1),age_imput(2),age_imput(3))
+summary (df$Age)
+
+```
+Ahora sí hemos imputado las edades para todos los pasajeros y no hemos de eliminar ningún registro.
+
+
 En la variable *Survived* no se observan valores pérdidos.
 ```{r}
 levels(as.factor(df$Survived))
@@ -78,32 +162,49 @@ Tampoco se observan valores pérdidos en la variable Pclass. La variable Pclass 
 ```{r}
 levels(as.factor(df$Pclass))
 ```
-La variable *Sex* toma sólo dos valores *male* y *female* por lo que no existen valores pérdidos.
+La variable *Sex* toma sólo dos valores *male* y *female* y no existen valores pérdidos.
+
+
 ```{r}
-ggplot(data=df, mapping=aes(Sex)) + geom_bar(fill=red_col) + ggtitle("Distribución de la variable sexo") + theme(plot.title = element_text(hjust = 0.5))
+levels(as.factor(df$Sex))
+```
+
+```{r}
+ggplot(data=df, mapping=aes(Sex)) + geom_bar(fill = "#73edff") + ggtitle("Distribución de la variable sexo") + theme(plot.title = element_text(hjust = 0.5))
 ```
 Tampoco se observan valores pérdidos en la variable *Parch* ni en la variable *SibSp*.
 
 ```{r}
-ggplot(data=df, mapping=aes(Parch)) + geom_bar(fill=red_col) + ggtitle("Distribución del número de hijos o padres en el barco") + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df, mapping=aes(Parch)) + geom_bar(fill="#73edff") + ggtitle("Distribución del número de hijos o padres en el barco") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ```{r}
-ggplot(data=df, mapping=aes(SibSp)) + geom_bar(fill=red_col) + ggtitle("Distribución del número de hermanoso cónyuges en el barco") + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df, mapping=aes(SibSp)) + geom_bar(fill="#73edff") + ggtitle("Distribución del número de hermanos o cónyuges en el barco") + theme(plot.title = element_text(hjust = 0.5))
 ```
-Por el contrario, existen valores vacíos en la variable *Cabin*. En concreto, más de la mitad de los registros tienen valores vacíos en la variable *Cabin* (529 de 891). Por ello, eliminaremos la variable *Cabin*.
+
+
+Entre el pasaje de segunda y tercera clase seiscientos inmigrantes en busca de una oportunidad que viajan en condiciones muy diferentes a aquellos ilustres viajeros.
 
 ```{r}
 nrow(df %>% filter(Cabin == ""))
 ```
+Por el contrario, existen valores vacíos en la variable *Cabin*. En concreto, más de la mitad de los registros tienen valores vacíos en la variable *Cabin* (529 de 891).
 
 ```{r}
-df <- df %>% select(-Cabin)
+df$has_cabin <- ifelse(df$Cabin %in% "", "Sin cabina", "Con cabina")
+pie (table(df$has_cabin), main = "Pasajeros con/sin cabina")
+```
+
+```{r}
+pie (table(df$Embarked), main = "Pasajeros por puertos de embarque")
+```
+
+
+```{r}
 head(df)
 ```
-```{r}
-dim(df)
-```
+
+
 
 Por último se encuentran dos registros con valores pérdidos en la variable *Embarked*. Se eliminan estos dos registros.
 ```{r}
@@ -117,13 +218,97 @@ dim(df)
 
 ### 3.2 Identificación y gestión de los valores extremos.
 
+```{r}
+par(mfrow = c(1, 2))
+
+boxplot(df$Age,main="Distribución de la edad", 
+        col="gray")
+
+boxplot(df$Fare,main="Distribución del precio ticket(Fare)", 
+        col="gray")
+
+boxplot(df$SibSp,main="Distribución hermanos/cónyuges", 
+        col="gray")
+
+
+boxplot(df$Parch,main="Distribución padres/hijos", 
+        col="gray")
+
+```
+
+Distribuciones de edad según clase
+
+
+```{r}
+
+ggplot(df, aes(x =Pclass , y = Age, colour = Pclass)) +
+geom_boxplot(fill = "cornsilk") +
+              theme(axis.text.x = element_text(angle = 45,
+                                               hjust = 1))
+
+```
+
+
+```{r}
+par(mfrow = c(1, 2))
+
+ggplot(df, aes(x =Pclass , y = SibSp, colour = Pclass)) +
+geom_boxplot(fill = "cornsilk") +
+              theme(axis.text.x = element_text(angle = 45,
+                                               hjust = 1))
+
+```
+
+
+```{r}
+
+ggplot(df, aes(x =Pclass , y = Parch, colour = Pclass)) +
+geom_boxplot(fill = "cornsilk") +
+              theme(axis.text.x = element_text(angle = 45,
+                                               hjust = 1))
+
+```
+
+
+
+
 ## 4. Análisis de los datos
 
 ### 4.1. Selección de los grupos de datos que se quieren analizar/comparar (p. e., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
 
+Supervivencia entre mujeres y hombres
+
+Supervivencia edad es mayor en los niños
+
+La supervivencia es mayor en viajeros de primera clase
+
+Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
+
+Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
+
 ### 4.2. Comprobación de la normalidad y homogeneidad de la varianza.
 
+el gráfico cuantil-cuantil compara que  los valores de una variable que se distribuyen normalmente(QQ plot)
+
+```{r}
+par(mfrow = c(2, 2))
+
+#Gráfico cuantil-cuantil (QQ plot) edad de los pasajeros.
+qqnorm(df$Age)
+qqline(df$Age)
+
+
+#Gráfico cuantil-cuantil (QQ plot) precio del ticket.
+qqnorm(df$Fare)
+qqline(df$Fare)
+
+
+
+```
+
 ### 4.3. Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
+
+
 
 ## 5. Representación de los resultados a partir de tablas y gráficas. Este apartado se puede responder a lo largo de la práctica, sin necesidad de concentrar todas las representaciones en este punto de la práctica.
 
