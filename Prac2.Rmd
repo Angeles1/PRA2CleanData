@@ -308,7 +308,7 @@ qqline(df$Fare)
 
 ### 4.3. Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
 
-Supervivencia entre mujeres y hombres
+#### Supervivencia entre mujeres y hombres
 
 A partir de un diagrama de barras podemos observar que la mayor parte de las personas que sobrevivieron al naufragio del Titanic eran mujeres. Comprobaremos este hecho con el diseño de un modelo de regresión logística con variable dependiente Survived y variable explicativa Sex.
 ```{r}
@@ -320,13 +320,34 @@ model_surv_sex <- glm(as.factor(Survived)~Sex, family=binomial(link=logit), data
 summary(model_surv_sex)
 ```
 
-Supervivencia edad es mayor en los niños
+#### Supervivencia edad es mayor en los niños
 
-La supervivencia es mayor en viajeros de primera clase
+(La proporción de niños que sobrevivieron es mayor que la proporción de adultos que sobrevivieron)
+Para determinar si la supervivencia es mayor en viajeros en los niños se empleará un contraste de hipótesis sobre la proporción de dos muestras (niños y adultos). Se consideran niños a toda aquella persona menor de 18 años.
 
-Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
 
-Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
+Se definen las hipótesis nula y alternativa siguientes:
+
+- ${H_0}$: La proporción de niños que sobrevivieron es igual a la proporción de adultos.
+- ${H_1}$: La proporción de niños que sobrevivieron es mayor a la proporción de adultos.
+
+Realizamos el contraste de hipótesis con la función prop.test y obtenemos un p-valor igual a 0.001122. Se emplea un porcentaje de confianza del 95 por ciento por lo que el nivel de significancia es igual a 0.05 (1 - 95/100). Debido a que el p-valor es inferior que el nivel de significancia podemos rechazar la hipótesis nula, aceptar la hipótesis alternativa y afirmar con un 95 por ciento de confianza que la proporción de los niños que sobrevivieron es mayor que la proporción de adultos.
+
+```{r}
+df.kids <- df %>% filter(Age < 18)
+df.adults <- df %>% filter(Age >= 18)
+kids.surv <- sum(df.kids$Survived == 1)
+adults.surv <- sum(df.adults$Survived == 1)
+n.kids <- nrow(df.kids)
+n.adults <- nrow(df.adults)
+prop.test(c(kids.surv, adults.surv), c(n.kids,n.adults), alternative = "greater")
+```
+
+#### La supervivencia es mayor en viajeros de primera clase
+
+#### Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
+
+#### Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
 
 
 ## 5. Representación de los resultados a partir de tablas y gráficas. Este apartado se puede responder a lo largo de la práctica, sin necesidad de concentrar todas las representaciones en este punto de la práctica.
