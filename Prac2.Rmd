@@ -335,7 +335,7 @@ A partir de un diagrama de barras podemos observar que la mayor parte de las per
 ```{r}
 ggplot(df, aes(x=as.factor(Survived), fill=Sex)) + geom_bar(position = "fill") + labs(x="Survived", y="Ratio") + ggtitle("Supervivencia entre mujeres y hombres") + theme(plot.title = element_text(hjust = 0.5))
 ```
-Creamos el modelo de regresión logística y obtenemos un coeficiente asociado al valor male de la variable Sex negativo lo que indica que la probabilidad de sobrevivir al naufragio del Titanic era menor en hombres que en mujeres.
+Creamos el modelo de regresión logística y obtenemos un coeficiente asociado al valor male de la variable Sex negativo (columna Estimate) lo que indica que la probabilidad de sobrevivir al naufragio del Titanic era menor en hombres que en mujeres.
 ```{r}
 model_surv_sex <- glm(as.factor(Survived)~Sex, family=binomial(link=logit), data=df)
 summary(model_surv_sex)
@@ -365,6 +365,29 @@ prop.test(c(kids.surv, adults.surv), c(n.kids,n.adults), alternative = "greater"
 ```
 
 #### La supervivencia es mayor en viajeros de primera clase
+
+En primer lugar observamos gráficamente la proporción de pasajeros de cada clase que sobrevivieron y los que no. La proporción de pasajeros de la primera clase que no sobrevivieron es menor que la proporción del restod de clases. Por otro lado, la proporción de personas de la primera clase que sobrevivieron es la mayor de las tres clases.
+```{r}
+ggplot(df, aes(x=as.factor(Survived), fill=Pclass)) + geom_bar(position = "fill") + labs(x="Survived", y="Ratio") + ggtitle("Supervivencia entre pasajeros de distintas clases") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+Para determinar si la supervivencia es mayor en viajeros de primera clase generamos un modelo de regresión logística y calculamos los odds-ratios. Se toma el valor 1 (primera clase) como valor de referencia para la variable explicativa. Los odds-ratios nos indica la diferencia entre la probabilidad de sobrevivir al naufragio si el pasajero viaja en primera clase (valor de referencia) y la probabilidad de sobrevivir si el pasajero viaja en la segunda y en la tercera clase.
+
+```{r}
+model_surv_class <- glm(as.factor(Survived)~Pclass, family=binomial(link=logit), data=df)
+summary(model_surv_class)
+```
+Los odds-ratios se pueden obtener a partir de los coeficientes del modelo de regresión. Obtenemos dos odds-ratio distintos uno para la segunda clase y otro para la tercera clase.
+
+```{r}
+exp(coefficients(model_surv_class))
+```
+
+El odds-ratio de la segunda clase es igual a 0.53. El hecho de obtener un odd-ratio menor que uno indica que la probabilidad de sobrevivir viajando en segunda clase es menor que si se viaja en primera clase.
+
+El odds-ratio de la tercera clase también es inferior a la unidad por lo que podemos determinar que la probabilidad de sobrevivir viajando en la tercera clase es menor que si se viaja en la primera clase.
+
+Por todo ello podemos concluir que la supervivencia es mayor si se viaja en la primera clase.
 
 #### Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
 
