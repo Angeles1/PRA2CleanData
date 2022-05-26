@@ -305,6 +305,27 @@ qqline(df$Fare)
 
 
 ```
+Otra forma de determinar si las variables Age y Fare siguen una distribución normal es emplear el test de Shapiro-Wilk. 
+
+Para el test de Shapiro-Wilk suponemos un nivel de significancia igual a 0.05. 
+
+Tras aplicar el test mencionado para la variable Age obtenemos un p-valor inferior al test de significancia establecido por lo que podemos determinar que la variable Age no sigue una distribución normal.
+
+```{r}
+shapiro.test(df$Age)
+```
+
+También aplicamos el test de Shappiro-Wilk para la variable Fare. Se vuelve a obtener un p-valor inferior al test de significancia por lo que también podemos determinar que la variable Age no sigue una distribución normal.
+
+```{r}
+shapiro.test(df$Fare)
+```
+Dado que ambas variables no siguen una distribución normal, para estudiar la homogeneidad de la varianza se emplea el test de Fligner-Killen suponiendo un nivel de significancia igual a 0.05. Se obtiene un p-valor inferior al nivel de significancia por lo que podemos determinar que las variables Age y Fare presentan varianzas estadísticamente distintas.
+
+```{r}
+fligner.test(Age ~ Fare, data=df)
+```
+
 
 ### 4.3. Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc. Aplicar al menos tres métodos de análisis diferentes.
 
