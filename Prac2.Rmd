@@ -81,18 +81,14 @@ unique(df$Pclass)
 class(df$Pclass)
 df$Pclass<-factor(df$Pclass)
 class(df$Pclass)
-
 unique(df$Sex)
 class(df$Sex)
 df$Sex<-factor(df$Sex)
 class(df$Sex)
-
 unique(df$Cabin)
 class(df$Cabin)
 df$Cabin<-factor(df$Cabin)
 class(df$Cabin)
-
-
 ```
 
 ## 3. Limpieza de los datos.
@@ -107,13 +103,10 @@ summary(df)
 Observamos que la variable *Age* tiene 177 valores nulos, si eliminamos estos registros perdemos un 10% de los datos del conjunto, por lo que procedemos a evaluarlos para realizar la imputación de estos registros. Analizaremos si existe alguna relación con otros factores, como *PClass* y *Age*
 
 ```{r}
-
 sum(is.na(df$Age))
 sum(is.na(df[df$Pclass == 1,]$Age))
 sum(is.na(df[df$Pclass == 2,]$Age))
 sum(is.na(df[df$Pclass == 3,]$Age))
-
-
 ```
 Se observa que existen 177 valores perdidos en las edades de los pasajeros del Titanic, y que además la mayor parte (136) pertenece a los pasajeros de tercera clase. Este dato puede ser interesante para el estudio y conclusiones del análisis.
 
@@ -121,10 +114,8 @@ Procedemos a agrupar los registros perdidos en la tercera clase para ver si exis
 
 ```{r}
 df.NA <- df %>%  filter(is.na(df$Age))
-
 p <- ggplot(data = df.NA, aes(Pclass, PassengerId, fill = Sex))
 p + geom_bar(stat = "identity", names.arg = df.NA$Pclass)
-
 ```
 
 
@@ -135,20 +126,16 @@ age_imput<- function( pClass){
     df.pClass <- df[df$Pclass == pClass,]
     df.m <- df.pClass[df.pClass$Sex == 'male',]
     df.f <- df.pClass[df.pClass$Sex == 'female',]
-
     df.f <- kNN(df.f, variable= c("Age"), k=11)
     df.m <- kNN(df.m, variable= c("Age"), k=11)
     rbind(df.m, df.f)
-
 }
-
 ```
 
 ```{r}
 summary (df$Age)
 df <- rbind(age_imput(1),age_imput(2),age_imput(3))
 summary (df$Age)
-
 ```
 Ahora sí hemos imputado las edades para todos los pasajeros y no hemos de eliminar ningún registro.
 
@@ -220,56 +207,81 @@ dim(df)
 
 ```{r}
 par(mfrow = c(1, 2))
-
 boxplot(df$Age,main="Distribución de la edad", 
         col="gray")
-
 boxplot(df$Fare,main="Distribución del precio ticket(Fare)", 
         col="gray")
-
 boxplot(df$SibSp,main="Distribución hermanos/cónyuges", 
         col="gray")
-
-
 boxplot(df$Parch,main="Distribución padres/hijos", 
         col="gray")
 
 ```
 
-Distribuciones de edad según clase
+
+```{r}
+#resumen valores de atributo edad
+summary (df$Age)
+```
+
+Los diagramas de bigotes nos dan una visual rápida sobre las distribución de los valores y los outliers. Vemos que la media de la edad ronda los 30 años, y que tenemos valores extremos entre los 60 y 80 años. No consideramos eliminarlos de la muestra, ya que pueden ser datos interesantes y no se consideran valores erróneos. 
 
 
 ```{r}
+#resumen valores de atributo Precio del ticket
+summary (df$Fare)
+```
+Ocurre algo, sin embargo, con el precio de los tickets, el precio medio se encuentra entre 32 y aparece un ticket con precio 512. 
+Además, vemos que hay tickets que costaron 0 libras esterlinas,  
 
+Según nuestra investigación en la red: el pasaje oscilaba entre 3 libras, los más baratos, hasta 870 libras, los más caros.
+
+
+Discutimos si se trata de dato erróneo o no, y concluimos que no imputaremos estos valores extremos porque pueden ser muy valiosos a la hora de estudiar la razón y las relaciones que pudieran aparecer respecto al precio de los billetes.
+
+A continuación distribuimos la edad según la clase: primera clase, segunda clase y tercera clase.
+Los valores extremos aparecen, aunque son los que se dibujan en los límites inferiores los que levantan sospecha ya que se trata de infantes.
+Los extremos superiores, a simple vista, determinan que la media de edad en las clases 2  y 3 es más joven que primera clase (30 año y 25 años frente a 38 años) y que son pocos los mayores de 55 años que viajaron en segunda y tercera clase.
+
+
+```{r}
 ggplot(df, aes(x =Pclass , y = Age, colour = Pclass)) +
 geom_boxplot(fill = "cornsilk") +
               theme(axis.text.x = element_text(angle = 45,
                                                hjust = 1))
-
 ```
+Sobre el número de hermanos o de cónyuges que tenía el pasajero a bordo, vemos que el valor parece ser bastante irrelevante, la media es 0.5, y que en tercera clase hay valores extremos de algúnas pasajeros que viajaban con hermanos o cónyuges.
 
+```{r}
+#resumen valores de número de hermanos o de cónyuges
+summary (df$SibSp)
+```
 
 ```{r}
 par(mfrow = c(1, 2))
-
 ggplot(df, aes(x =Pclass , y = SibSp, colour = Pclass)) +
 geom_boxplot(fill = "cornsilk") +
               theme(axis.text.x = element_text(angle = 45,
                                                hjust = 1))
-
 ```
 
 
-```{r}
+Sin embargo el atributo Parch sobre el numero de hijos o padres a bordo, vemos que hay outliers en primera y tercera clase, pero que en segunda clase si se encuentran relaciones de padres o hijos a bordo.
 
+```{r}
+#resumen valores de número de padres o hijos a bordo
+summary (df$Parch)
+```
+
+```{r}
 ggplot(df, aes(x =Pclass , y = Parch, colour = Pclass)) +
 geom_boxplot(fill = "cornsilk") +
               theme(axis.text.x = element_text(angle = 45,
                                                hjust = 1))
-
 ```
 
 
+Decidimos no tratar los outliers o valores extremos, porque pueden ser datos interesantes a tener en cuenta durante el análisis.
 
 
 ## 4. Análisis de los datos
@@ -292,18 +304,12 @@ el gráfico cuantil-cuantil compara que  los valores de una variable que se dist
 
 ```{r}
 par(mfrow = c(2, 2))
-
 #Gráfico cuantil-cuantil (QQ plot) edad de los pasajeros.
 qqnorm(df$Age)
 qqline(df$Age)
-
-
 #Gráfico cuantil-cuantil (QQ plot) precio del ticket.
 qqnorm(df$Fare)
 qqline(df$Fare)
-
-
-
 ```
 Otra forma de determinar si las variables Age y Fare siguen una distribución normal es emplear el test de Shapiro-Wilk. 
 
@@ -391,10 +397,12 @@ Por todo ello podemos concluir que la supervivencia es mayor si se viaja en la p
 
 #### Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
 
+Los de primera clase pagaron entre 113 y 512.3 libras esterlinas, mientras que quien abordó en segunda clase, pagó 75 libras por cada boleto. Quienes lo hicieron en tercera clase, pagaron entre 30 y 70 libras esterlinas por cada boleto.
+
+
 #### Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
 
 
 ## 5. Representación de los resultados a partir de tablas y gráficas. Este apartado se puede responder a lo largo de la práctica, sin necesidad de concentrar todas las representaciones en este punto de la práctica.
 
 ## 6. Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema? 
-
