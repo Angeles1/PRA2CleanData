@@ -288,6 +288,19 @@ Decidimos no tratar los outliers o valores extremos, porque pueden ser datos int
 
 ### 4.1. Selección de los grupos de datos que se quieren analizar/comparar (p. e., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
 
+Grupo: Mujeres y hombres (por género)
+Grupo:  (por PClase)
+Grupo: 
+Grupo: 
+
+| Grupo                                       | Atributo key                                                                                     
+|---------------------------------------------|----------------------------|
+| Mujeres y hombres                           | Sex (Gender)               |
+| Primera clase, segunda clase, tercera clase | Pclass                     |
+| Superviviente y no superviviente            | Survived                   |
+| Niños, adultos, ancianos                    | Age range (generated)      |
+
+
 Supervivencia entre mujeres y hombres
 
 Supervivencia edad es mayor en los niños
