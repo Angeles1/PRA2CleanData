@@ -42,15 +42,6 @@ https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-proje
 * Publicación DataSet
 
 
-
-## Requerimientos
-
-Es necesario tener instalada la librería Selenium para ejecutar el código
-```
-pip install selenium
-```
-
-
 ## Agradecimientos
 La limpieza de este dataset se ha realizado gracias a la comunidad de código abierto:
 * R
@@ -59,5 +50,5 @@ La limpieza de este dataset se ha realizado gracias a la comunidad de código ab
 Al repositorio y control de versiones para trabajar en equipo:
 * GitHub
 
-Y a los portales web que tienen los datos que hemos scrapeado:
+Portal respositorio de DataSet utilizado:
 * www.kaggle.com
