@@ -23,9 +23,9 @@ Esta práctica se ha desarrollado por:
 
 * Otros proyecto de Clean Data
 
-https://github.com/EdelBlau/PEC_TPC
+[Gutierrez_teguayco_Practica_2__Limpieza_y_validacion_de__27_12_2017_07_31_05.pdf](https://campus.uoc.edu/webapps/classroom/download.do?nav=activitats&sub-nav=descarregar-adjunt&id=893669&serial=false&s=4eaec72a3cb2e9f2bedb57da3e6bcf0e5a10e82cb46df0cd8041f8810b2cf5afad55b752c134ad0e19859d776730204c494fb85a2f5c7ae58fea00a52d095dee&domainId=864495&proposedFilename=Bengoechea_Isasa_Jose_Ignacio_PR2.pdf&idLang=&javascriptDisabled=false&subjectId=864495&domainCode=212_m2_851_02&classroomId=870338)
 
-https://github.com/eambroa/WebScrapingFotocasa
+[Bengoechea_Isasa_Jose_Ignacio_PR2.pdf](https://campus.uoc.edu/webapps/classroom/download.do?nav=activitats&sub-nav=descarregar-adjunt&id=893669&serial=false&s=4eaec72a3cb2e9f2bedb57da3e6bcf0e5a10e82cb46df0cd8041f8810b2cf5afad55b752c134ad0e19859d776730204c494fb85a2f5c7ae58fea00a52d095dee&domainId=864495&proposedFilename=Bengoechea_Isasa_Jose_Ignacio_PR2.pdf&idLang=&javascriptDisabled=false&subjectId=864495&domainCode=212_m2_851_02&classroomId=870338)
 
 * MarkDown Style
 
