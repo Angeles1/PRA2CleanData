@@ -27,19 +27,11 @@ Esta práctica se ha desarrollado por:
 
 [Bengoechea_Isasa_Jose_Ignacio_PR2.pdf](https://campus.uoc.edu/webapps/classroom/download.do?nav=activitats&sub-nav=descarregar-adjunt&id=893669&serial=false&s=4eaec72a3cb2e9f2bedb57da3e6bcf0e5a10e82cb46df0cd8041f8810b2cf5afad55b752c134ad0e19859d776730204c494fb85a2f5c7ae58fea00a52d095dee&domainId=864495&proposedFilename=Bengoechea_Isasa_Jose_Ignacio_PR2.pdf&idLang=&javascriptDisabled=false&subjectId=864495&domainCode=212_m2_851_02&classroomId=870338)
 
-* MarkDown Style
-
-* Técnicas de Estadística
-
-* Programación
-
-
 
 * Guia de estilos github
 
 https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project
 
-* Publicación DataSet
 
 
 ## Agradecimientos
