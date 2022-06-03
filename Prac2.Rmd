@@ -3,9 +3,9 @@ title: "Titanic PRA2: Limpieza y análisis de datos"
 author: "María Angeles Fuentes Expósito, Norberto Jesús de la Cruz Falcón"
 date: '`r format(Sys.Date(),"%e de %B, %Y")`'
 output:
-  html_document:
-    toc: yes
   pdf_document:
+    toc: yes
+  html_document:
     toc: yes
 ##bibliography: dataclean.bib
 ---
@@ -504,7 +504,7 @@ labels = c(1,2, 3))
 ggplot(data=df, mapping=aes(ticket_range)) + geom_bar(fill="#73edff") + ggtitle("Distribución precios por rango") + theme(plot.title = element_text(hjust = 0.5))
 df$Embarked_value <- ifelse(df$Embarked == "C", 1, ifelse (df$Embarked == "Q",2, ifelse (df$Embarked == "S",3,"")))
 
-df.chi <- df %>% select(-c(Sex, Cabin, PassengerId, SibSp, Parch, Age_imp,age_label, has_cabin, PassengerId, Survived, Pclass, Age, chi, Fare, Embarked))
+df.chi <- df %>% select(-c(Sex, Cabin, PassengerId, SibSp, Parch, Age_imp,age_label, has_cabin, PassengerId, Survived, Pclass, Age, Fare, Embarked))
 df.chi$ticket_range <- as.numeric(df.chi$ticket_range)
 df.chi$Embarked_value <- as.numeric(df.chi$Embarked_value)
 
@@ -528,14 +528,13 @@ summary(model_surv_class)
 
 
 
-
 ```
 
 
 
 ```{r}
 
-df.chi <- df %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare, Age_imp,age_label, has_cabin))
+df.chi <- df %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare, Age_imp,age_label, has_cabin, ticket_range, Embarked_value))
 df.chi$bool_cabin <- ifelse(df$has_cabin %in% "Sin cabina", 0, 1)
 df.chi$Pclass <- as.numeric(df.chi$Pclass)
 class(df.chi$Pclass)
@@ -561,9 +560,7 @@ predict(model_surv_class, newdata = prediction_data, type="response")
 prediction_data <- list("has_cabin" = "Sin cabina")
 predict(model_surv_class, newdata = prediction_data, type="response")
 
-
 ```
-
 
 
 ### La supervivencia menor en pasajeros que viajan solos
@@ -580,10 +577,8 @@ df$has_family <- ifelse(df$has_sibsp ==  "sibs" | df$has_Parch ==  "parch" , "fa
 
 ggplot(data=df, mapping=aes(has_family)) + geom_bar(fill="#73edff") + ggtitle("Distribución acompañantes") + theme(plot.title = element_text(hjust = 0.5))
 
-
 model_surv_class <- glm(as.factor(Survived)~has_family, family=binomial(link=logit), data=df)
 summary(model_surv_class)
-
 
 
 prediction_data <- list("has_family" = "alone")
@@ -593,14 +588,11 @@ predict(model_surv_class, newdata = prediction_data, type="response")
 prediction_data <- list("has_family" = "family")
 predict(model_surv_class, newdata = prediction_data, type="response")
 
-
 ```
 
 
 
 ## 6. Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema? 
-
-
 
 
 
