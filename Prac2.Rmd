@@ -3,9 +3,9 @@ title: "Titanic PRA2: Limpieza y análisis de datos"
 author: "María Angeles Fuentes Expósito, Norberto Jesús de la Cruz Falcón"
 date: '`r format(Sys.Date(),"%e de %B, %Y")`'
 output:
-  pdf_document:
-    toc: yes
   html_document:
+    toc: yes
+  pdf_document:
     toc: yes
 ##bibliography: dataclean.bib
 ---
@@ -14,7 +14,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r }
 # dplyr
 if (!require('dplyr')) install.packages('dplyr')
 library(dplyr)
@@ -22,6 +22,7 @@ library(dplyr)
 if (!require('ggplot2')) install.packages('ggplot2')
 library(ggplot2)
 library(VIM)
+library(PerformanceAnalytics)
 red_col <- "#cc4533"
 ```
 
@@ -65,7 +66,7 @@ Cargamos el conjunto de datos y observamos que está formado por 891 registros y
 df.origen <- read.csv('train.csv')
 dim(df.origen)
 ```
-```{r}
+```{r }
 head(df.origen)
 ```
 
@@ -74,9 +75,9 @@ Las variables *Name* y *Ticket* no serán de utilidad para los análisis estadí
 df <- df.origen %>% select(-c(Name, Ticket))
 head(df)
 ```
-Observamos que los atributos cualitativos *Pclass* y *Sex* no se han cargado como tipo Factor, por lo que se ajustan los tipos de las variables:
+Observamos que los atributos cualitativos *Pclass* , *Sex* y *Cabin* no se han cargado como tipo Factor, por lo que se ajustan los tipos de las variables al tipo que corresponde (Factor) 
 
-```{r}
+```{r }
 unique(df$Pclass)
 class(df$Pclass)
 df$Pclass<-factor(df$Pclass)
@@ -85,22 +86,28 @@ unique(df$Sex)
 class(df$Sex)
 df$Sex<-factor(df$Sex)
 class(df$Sex)
-unique(df$Cabin)
 class(df$Cabin)
 df$Cabin<-factor(df$Cabin)
 class(df$Cabin)
 ```
 
+```{r}
+unique(df$Cabin)
+```
+
+Hemos seleccionado y configurado los atributos de interés del dataset de supervivientes de Titanic y realizado la primera vista de los registros.
+
+
 ## 3. Limpieza de los datos.
 
 ### 3.1 Valores perdidos.
 
-una de las tecnicas de limpieza de los datos es
+una de las tecnicas de limpieza de los datos es la eliminación de los valores nulos o missing data, pero se han de analizar ya que podríamos perder información relevante contenida en dichos registros. Lo primero que se ha de hacer es visualizar el conjunto de datos y capturar los valores nulos NA's.
 
 ```{r}
 summary(df)
 ```
-Observamos que la variable *Age* tiene 177 valores nulos, si eliminamos estos registros perdemos un 10% de los datos del conjunto, por lo que procedemos a evaluarlos para realizar la imputación de estos registros. Analizaremos si existe alguna relación con otros factores, como *PClass* y *Age*
+Observamos que la variable *Age* tiene 177 valores nulos, si eliminamos estos registros perdemos un 10% de los datos del conjunto, por lo que procedemos a evaluarlos para realizar una imputación adecuada para estos registros. Analizaremos si existe alguna relación con otros factores, como *PClass* y *Age*
 
 ```{r}
 sum(is.na(df$Age))
@@ -108,7 +115,8 @@ sum(is.na(df[df$Pclass == 1,]$Age))
 sum(is.na(df[df$Pclass == 2,]$Age))
 sum(is.na(df[df$Pclass == 3,]$Age))
 ```
-Se observa que existen 177 valores perdidos en las edades de los pasajeros del Titanic, y que además la mayor parte (136) pertenece a los pasajeros de tercera clase. Este dato puede ser interesante para el estudio y conclusiones del análisis.
+
+Se observa que existen 177 valores perdidos en las edades de los pasajeros del Titanic, y que además la mayor parte (136) pertenece a los pasajeros de tercera clase. Este dato puede ser interesante para el estudio posterior y conclusiones del análisis.
 
 Procedemos a agrupar los registros perdidos en la tercera clase para ver si existe relación con el género de los pasajeros.
 
@@ -288,10 +296,6 @@ Decidimos no tratar los outliers o valores extremos, porque pueden ser datos int
 
 ### 4.1. Selección de los grupos de datos que se quieren analizar/comparar (p. e., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
 
-Grupo: Mujeres y hombres (por género)
-Grupo:  (por PClase)
-Grupo: 
-Grupo: 
 
 | Grupo                                       | Atributo key                                                                                     
 |---------------------------------------------|----------------------------|
@@ -301,9 +305,11 @@ Grupo:
 | Niños, adultos, ancianos                    | Age range (generated)      |
 
 
-Supervivencia entre mujeres y hombres
+Supervivencia entre mujeres y hombres -> regresión logística con variable dependiente *Survived* y variable explicativa *Sex*
 
-Supervivencia edad es mayor en los niños
+Supervivencia es mayor en los niños -> contraste de hipótesis sobre la proporción de dos muestras (niños y adultos) atributo *Age*
+Supervivencia es mayor en los adultos mayores de  -> contraste de hipótesis sobre la proporción de dos muestras (niños y adultos) atributo *Age*
+
 
 La supervivencia es mayor en viajeros de primera clase
 
@@ -311,9 +317,10 @@ Existe relacion entre el precio del billete, el puerto de embarque y la Pclase
 
 Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
 
+
 ### 4.2. Comprobación de la normalidad y homogeneidad de la varianza.
 
-el gráfico cuantil-cuantil compara que  los valores de una variable que se distribuyen normalmente(QQ plot)
+El gráfico cuantil-cuantil compara los valores del atributo con los de una variable que se distribuye normalmente(QQ plot)
 
 ```{r}
 par(mfrow = c(2, 2))
@@ -323,7 +330,9 @@ qqline(df$Age)
 #Gráfico cuantil-cuantil (QQ plot) precio del ticket.
 qqnorm(df$Fare)
 qqline(df$Fare)
+
 ```
+
 Otra forma de determinar si las variables Age y Fare siguen una distribución normal es emplear el test de Shapiro-Wilk. 
 
 Para el test de Shapiro-Wilk suponemos un nivel de significancia igual a 0.05. 
@@ -334,7 +343,7 @@ Tras aplicar el test mencionado para la variable Age obtenemos un p-valor inferi
 shapiro.test(df$Age)
 ```
 
-También aplicamos el test de Shappiro-Wilk para la variable Fare. Se vuelve a obtener un p-valor inferior al test de significancia por lo que también podemos determinar que la variable Age no sigue una distribución normal.
+También aplicamos el test de Shappiro-Wilk para la variable Fare. Se vuelve a obtener un p-valor inferior al test de significancia por lo que también podemos determinar que la variable Fare no sigue una distribución normal.
 
 ```{r}
 shapiro.test(df$Fare)
@@ -383,6 +392,34 @@ n.adults <- nrow(df.adults)
 prop.test(c(kids.surv, adults.surv), c(n.kids,n.adults), alternative = "greater")
 ```
 
+
+#### Supervivencia es mayor en niños que en adultos
+
+(La proporción de niños que sobrevivieron es mayor que la proporción de adultos que sobrevivieron)
+Para determinar si la supervivencia es mayor en viajeros en los niños se empleará un contraste de hipótesis sobre la proporción de dos muestras (niños y adultos). Se consideran niños a toda aquella persona menor de 18 años.
+
+
+Se definen las hipótesis nula y alternativa siguientes:
+
+- ${H_0}$: La proporción de niños que sobrevivieron es igual a la proporción de adultos.
+- ${H_1}$: La proporción de niños que sobrevivieron es mayor a la proporción de adultos.
+
+Realizamos el contraste de hipótesis con la función prop.test y obtenemos un p-valor igual a 0.001122. Se emplea un porcentaje de confianza del 95 por ciento por lo que el nivel de significancia es igual a 0.05 (1 - 95/100). Debido a que el p-valor es inferior que el nivel de significancia podemos rechazar la hipótesis nula, aceptar la hipótesis alternativa y afirmar con un 95 por ciento de confianza que la proporción de los niños que sobrevivieron es mayor que la proporción de adultos.
+
+```{r}
+df.kids <- df %>% filter(Age < 18)
+df.adults <- df %>% filter(Age >= 18)
+kids.surv <- sum(df.kids$Survived == 1)
+adults.surv <- sum(df.adults$Survived == 1)
+n.kids <- nrow(df.kids)
+n.adults <- nrow(df.adults)
+prop.test(c(kids.surv, adults.surv), c(n.kids,n.adults), alternative = "greater")
+```
+
+
+
+
+
 #### La supervivencia es mayor en viajeros de primera clase
 
 En primer lugar observamos gráficamente la proporción de pasajeros de cada clase que sobrevivieron y los que no. La proporción de pasajeros de la primera clase que no sobrevivieron es menor que la proporción del restod de clases. Por otro lado, la proporción de personas de la primera clase que sobrevivieron es la mayor de las tres clases.
@@ -393,8 +430,11 @@ ggplot(df, aes(x=as.factor(Survived), fill=Pclass)) + geom_bar(position = "fill"
 Para determinar si la supervivencia es mayor en viajeros de primera clase generamos un modelo de regresión logística y calculamos los odds-ratios. Se toma el valor 1 (primera clase) como valor de referencia para la variable explicativa. Los odds-ratios nos indica la diferencia entre la probabilidad de sobrevivir al naufragio si el pasajero viaja en primera clase (valor de referencia) y la probabilidad de sobrevivir si el pasajero viaja en la segunda y en la tercera clase.
 
 ```{r}
+
 model_surv_class <- glm(as.factor(Survived)~Pclass, family=binomial(link=logit), data=df)
 summary(model_surv_class)
+
+
 ```
 Los odds-ratios se pueden obtener a partir de los coeficientes del modelo de regresión. Obtenemos dos odds-ratio distintos uno para la segunda clase y otro para la tercera clase.
 
@@ -408,14 +448,167 @@ El odds-ratio de la tercera clase también es inferior a la unidad por lo que po
 
 Por todo ello podemos concluir que la supervivencia es mayor si se viaja en la primera clase.
 
+### Existe relacion entre la supervivencia, la edad y la clase
+
+```{r}
+elim.names <- c ("has_cabin", "Age_imp")
+elim.pos <- which (names(df) %in% elim.names)
+df.corr <- df[, -elim.pos]
+df.corr$Pclass <- as.numeric(df.corr$Pclass)
+df.corr <- df.corr %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare))
+
+cor(df.corr)
+
+chart.Correlation(df.corr)
+```
+
+
+
+```{r}
+df$age_label <- cut(df$Age, breaks = c(0,10,18,100),
+labels = c("kid","teenager", "adult"))
+
+
+model_surv_class <- glm(as.factor(Survived)~Pclass+age_label, family=binomial(link=logit), data=df)
+summary(model_surv_class)
+
+```
+```{r}
+#Predicción ser niño (<10 años) y viajar en primera clase
+prediction_data <- list("age_label" = "kid", "Pclass" = "1")
+predict(model_surv_class, newdata = prediction_data, type="response")
+
+#Predicción ser niño (<10 años) y viajar en segunda clase
+prediction_data <- list("age_label" = "kid", "Pclass" = "2")
+predict(model_surv_class, newdata = prediction_data, type="response")
+
+#Predicción ser niño (<10 años) y viajar en tercera clase
+prediction_data <- list("age_label" = "kid", "Pclass" = "3")
+predict(model_surv_class, newdata = prediction_data, type="response")
+```
+
 #### Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
 
 Los de primera clase pagaron entre 113 y 512.3 libras esterlinas, mientras que quien abordó en segunda clase, pagó 75 libras por cada boleto. Quienes lo hicieron en tercera clase, pagaron entre 30 y 70 libras esterlinas por cada boleto.
 
 
+
+
+```{r}
+
+ggplot(mapping= aes(x=df$Fare))+ geom_density()
+summary(df$Fare)
+df$ticket_range <- cut(df$Fare, breaks = c(-1,8.000,70.000, 600.000),
+labels = c(1,2, 3))
+
+ggplot(data=df, mapping=aes(ticket_range)) + geom_bar(fill="#73edff") + ggtitle("Distribución precios por rango") + theme(plot.title = element_text(hjust = 0.5))
+df$Embarked_value <- ifelse(df$Embarked == "C", 1, ifelse (df$Embarked == "Q",2, ifelse (df$Embarked == "S",3,"")))
+
+df.chi <- df %>% select(-c(Sex, Cabin, PassengerId, SibSp, Parch, Age_imp,age_label, has_cabin, PassengerId, Survived, Pclass, Age, chi, Fare, Embarked))
+df.chi$ticket_range <- as.numeric(df.chi$ticket_range)
+df.chi$Embarked_value <- as.numeric(df.chi$Embarked_value)
+
+
+chisq.test(df.chi)
+
+
+
+```
+
+
+
+
+### La supervivencia es mayor en pasajeros con cabina
+
+
+```{r}
+
+model_surv_class <- glm(as.factor(Survived)~Pclass, family=binomial(link=logit), data=df)
+summary(model_surv_class)
+
+
+
+
+```
+
+
+
+```{r}
+
+df.chi <- df %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare, Age_imp,age_label, has_cabin))
+df.chi$bool_cabin <- ifelse(df$has_cabin %in% "Sin cabina", 0, 1)
+df.chi$Pclass <- as.numeric(df.chi$Pclass)
+class(df.chi$Pclass)
+#df.chi <- df.chi %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare, Age_imp,age_label, has_cabin))
+
+chisq.test(df.chi)
+
+```
+
 #### Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
 
 
-## 5. Representación de los resultados a partir de tablas y gráficas. Este apartado se puede responder a lo largo de la práctica, sin necesidad de concentrar todas las representaciones en este punto de la práctica.
+```{r}
+
+model_surv_class <- glm(as.factor(Survived)~has_cabin, family=binomial(link=logit), data=df)
+summary(model_surv_class)
+
+
+prediction_data <- list("has_cabin" = "Con cabina")
+predict(model_surv_class, newdata = prediction_data, type="response")
+
+
+prediction_data <- list("has_cabin" = "Sin cabina")
+predict(model_surv_class, newdata = prediction_data, type="response")
+
+
+```
+
+
+
+### La supervivencia menor en pasajeros que viajan solos
+
+La última relación que nos quedará analizar es si la probabilidad de sobrevivir es menor si se viajaba solo en el Titanic, es decir sin hermanos/cónyuges (SibSp) o hijos/padres (Parch) a bordo.
+
+
+```{r}
+
+df$has_sibsp <- ifelse(df$SibSp < 1, "alone", "sibs" )
+df$has_Parch <- ifelse(df$Parch < 1, "alone", "parch" )
+
+df$has_family <- ifelse(df$has_sibsp ==  "sibs" | df$has_Parch ==  "parch" , "family", "alone" )
+
+ggplot(data=df, mapping=aes(has_family)) + geom_bar(fill="#73edff") + ggtitle("Distribución acompañantes") + theme(plot.title = element_text(hjust = 0.5))
+
+
+model_surv_class <- glm(as.factor(Survived)~has_family, family=binomial(link=logit), data=df)
+summary(model_surv_class)
+
+
+
+prediction_data <- list("has_family" = "alone")
+predict(model_surv_class, newdata = prediction_data, type="response")
+
+
+prediction_data <- list("has_family" = "family")
+predict(model_surv_class, newdata = prediction_data, type="response")
+
+
+```
+
+
 
 ## 6. Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema? 
+
+
+
+
+
+
+
+
+| Contribuciones                              | Firma                                                                                    
+|---------------------------------------------|----------------------------|
+| Investigación previa                        | MAFE, NJCF                 |
+| Redacción de las respuestas                 | MAFE, NJCF                 |
+| Desarrollo cñodigo                          | MAFE, NJCF                 |
