@@ -29,14 +29,20 @@ red_col <- "#cc4533"
 ## 1. Descripción del dataset. ¿Por qué es importante y qué pregunta/problema pretende responder?
 
 *Estado del arte*
-El Titanic....
+El Titanic era un barco de 267 metros de eslora que choca contra un iceberg y comienza a hundirse. Los pasajeros, aterrorizados, esperan su turno para subir a uno de los pocos botes salvavidas que hay: 20 en total. De las 2.223 personas que viajaban en él, solo 706 (492 pasajeros y 214 tripulantes) sobrevivieron tras ser recogidas a la mañana siguiente. Del agua se recuperaron 333 cuerpos.
+
+No fue el naufragio más grande de la historia en número de víctimas –en 1945, por ejemplo, murieron 9.343 personas en el accidente del Wilhelm Gustloff, un transatlántico alemán hundido por un submarino soviético–, pero el hundimiento del Titanic sí fue la catástrofe más mítica por la notoriedad de algunas de las víctimas (de las más ricas del mundo), por tratarse del viaje inaugural de un barco de superlujo y por los enigmas que, a día de hoy, siguen rodeando a este suceso. 
 
 *Justificación*
-El problema asdsad...
+La pregunta que pretendemos responder es: ¿podría sobrevivir al hundimiento del Titanic? ¿existen características o patrones que tienen en común los supervivientes?, ¿se dio prioridad de acceso a los botes salvavidas mujeres y niños?, ¿hubo influencia económica (de clase) en los supervivientes?
 
 
-El dataset está formado por las siguientes variables:
 
+*Descripción del dataset*
+
+Partimos de una base de datos real con los nombres y apellidos de una muestra de los pasajeros del Titanic (891 registrados frente a los 2.000 que viajaron), con su edad, el número de familiares de cada uno, la clase en que viajaban y el precio del billete que habían pagado. También sabemos si sobrevivieron o no. El dataset se obtiene de la competición de Kaggle “Titanic - Machine Learning from Disaster“ [2] disponible en el repositorio y  está formado por las siguientes variables descritas en la Tabla 1.
+
+Tabla 1 Tabla descripción atributos dataset
 
 | Variable    | Definición                                                            | Clave                                            |
 |-------------|-----------------------------------------------------------------------|--------------------------------------------------|
@@ -56,12 +62,14 @@ El dataset está formado por las siguientes variables:
 
 
 
-
 ## 2. Integración y selección de datos de interés
 
-Integración y selección de los datos de interés a analizar. Puede ser el resultado de adicionar diferentes datasets o una subselección útil de los datos originales, en base al objetivo que se quiera conseguir.
+Este proceso requiere visualizar el conjunto de datos, comprenderlos y seleccionar los atributos que son necesarios para realizar el estudio. Por lo que describimos a continuación los pasos realizados:
 
-Cargamos el conjunto de datos y observamos que está formado por 891 registros y las 12 variables comentadas en el apartado anterior.
+1.	Cargamos el conjunto de datos y observamos que está formado por 891 registros y las 12 variables comentadas en el apartado anterior (Tabla 1).
+2.	Generaremos un dataset que será la subselección útil de los datos originales, ya que las variables Name y Ticket no serán de utilidad en nuestro análisis.
+
+
 ```{r}
 df.origen <- read.csv('train.csv')
 dim(df.origen)
@@ -75,7 +83,9 @@ Las variables *Name* y *Ticket* no serán de utilidad para los análisis estadí
 df <- df.origen %>% select(-c(Name, Ticket))
 head(df)
 ```
-Observamos que los atributos cualitativos *Pclass* , *Sex* y *Cabin* no se han cargado como tipo Factor, por lo que se ajustan los tipos de las variables al tipo que corresponde (Factor) 
+
+3.	Lo siguiente que hacemos es verificar el tipo de dato de los atributos y observamos que los atributos cualitativos Pclass , Sex y Cabin no se han cargado en Rstudio como tipo Factor class(df$Pclass), class(df$Sex),class(df$Cabin), por lo que se realiza la conversión al tipo de dato Factor.
+
 
 ```{r }
 unique(df$Pclass)
@@ -95,19 +105,23 @@ class(df$Cabin)
 unique(df$Cabin)
 ```
 
-Hemos seleccionado y configurado los atributos de interés del dataset de supervivientes de Titanic y realizado la primera vista de los registros.
-
+En resumen, se han seleccionado y configurado los atributos de interés del dataset de supervivientes de Titanic y realizado la primera vista de los registros.
 
 ## 3. Limpieza de los datos.
 
 ### 3.1 Valores perdidos.
 
-una de las tecnicas de limpieza de los datos es la eliminación de los valores nulos o missing data, pero se han de analizar ya que podríamos perder información relevante contenida en dichos registros. Lo primero que se ha de hacer es visualizar el conjunto de datos y capturar los valores nulos NA's.
+Una de las técnicas de limpieza de los datos es la eliminación de los valores nulos o missing data, es importante analizar y estudiar cómo realizar el tratamiento de los valores perdidos, ya que si eliminamos los registros podríamos perder información relevante y si añadimos datos a los valores perdidos podríamos crear sesgos e información falsa en los datos. 
+
+Lo primero que se ha de hacer es visualizar el conjunto de datos y capturar los valores nulos NA’s.
 
 ```{r}
 summary(df)
 ```
-Observamos que la variable *Age* tiene 177 valores nulos, si eliminamos estos registros perdemos un 10% de los datos del conjunto, por lo que procedemos a evaluarlos para realizar una imputación adecuada para estos registros. Analizaremos si existe alguna relación con otros factores, como *PClass* y *Age*
+Observamos que la variable Age tiene 177 valores nulos y si eliminamos estos registros perdemos un 10% de los datos del conjunto. Claramente tenemos que proceder a evaluarlos para realizar la imputación de estos registros. 
+
+Para lograr una imputación lo más acertada posible, analizaremos si existe alguna relación en la pérdida de datos con otros factores, como PClass y Age. 
+
 
 ```{r}
 sum(is.na(df$Age))
@@ -116,17 +130,21 @@ sum(is.na(df[df$Pclass == 2,]$Age))
 sum(is.na(df[df$Pclass == 3,]$Age))
 ```
 
-Se observa que existen 177 valores perdidos en las edades de los pasajeros del Titanic, y que además la mayor parte (136) pertenece a los pasajeros de tercera clase. Este dato puede ser interesante para el estudio posterior y conclusiones del análisis.
+Se observa que existen 177 valores perdidos en las edades de los pasajeros del Titanic, y que además la mayor parte (136) pertenece a los pasajeros de tercera clase. Este dato puede ser interesante para el estudio y conclusiones del análisis.
 
 Procedemos a agrupar los registros perdidos en la tercera clase para ver si existe relación con el género de los pasajeros.
+
+
 
 ```{r}
 df.NA <- df %>%  filter(is.na(df$Age))
 p <- ggplot(data = df.NA, aes(Pclass, PassengerId, fill = Sex))
 p + geom_bar(stat = "identity", names.arg = df.NA$Pclass)
 ```
+Observamos que los missing values de Age se encuentran mayoritariamente en la Tercera Clase y además mayoritariamente en hombres.
 
 
+Procedemos a realizar la Imputación de los registros de edad mediante la técnica de clustering kNN para cada Clase.
 
 ```{r}
 #Función de Imputación de los registros de edad mediante la técnica de clustering kNN
@@ -139,6 +157,9 @@ age_imput<- function( pClass){
     rbind(df.m, df.f)
 }
 ```
+
+
+
 
 ```{r}
 summary (df$Age)
@@ -183,7 +204,7 @@ Entre el pasaje de segunda y tercera clase seiscientos inmigrantes en busca de u
 ```{r}
 nrow(df %>% filter(Cabin == ""))
 ```
-Por el contrario, existen valores vacíos en la variable *Cabin*. En concreto, más de la mitad de los registros tienen valores vacíos en la variable *Cabin* (529 de 891).
+Por el contrario, existen valores vacíos en la variable Cabin. En concreto, más de la mitad de los registros tienen valores vacíos en la variable Cabin (529 de 891). Entre los pasajeros de segunda y tercera clase 600 inmigrantes embarcaron en busca de una oportunidad y viajaron en condiciones muy diferentes a los demás viajeros.
 
 ```{r}
 df$has_cabin <- ifelse(df$Cabin %in% "", "Sin cabina", "Con cabina")
@@ -213,6 +234,8 @@ dim(df)
 
 ### 3.2 Identificación y gestión de los valores extremos.
 
+Los diagramas de bigotes nos dan una visual rápida sobre las distribución de los valores y los outliers. Vemos que la media de la edad ronda los 30 años, y que tenemos valores extremos entre los 60 y 80 años. No consideramos eliminarlos de la muestra, ya que pueden ser datos interesantes y no se consideran valores erróneos.
+
 ```{r}
 par(mfrow = c(1, 2))
 boxplot(df$Age,main="Distribución de la edad", 
@@ -239,17 +262,13 @@ Los diagramas de bigotes nos dan una visual rápida sobre las distribución de l
 #resumen valores de atributo Precio del ticket
 summary (df$Fare)
 ```
-Ocurre algo, sin embargo, con el precio de los tickets, el precio medio se encuentra entre 32 y aparece un ticket con precio 512. 
-Además, vemos que hay tickets que costaron 0 libras esterlinas,  
-
-Según nuestra investigación en la red: el pasaje oscilaba entre 3 libras, los más baratos, hasta 870 libras, los más caros.
+Ocurre algo, sin embargo, con el precio de los tickets, el precio medio se encuentra entre 32 y aparece un ticket con precio 512. Además, vemos que hay tickets que costaron 0 libras esterlinas. Según nuestra investigación en la red: el pasaje oscilaba entre 3 libras, los más baratos, hasta 870 libras, los más caros [4]. 
 
 
-Discutimos si se trata de dato erróneo o no, y concluimos que no imputaremos estos valores extremos porque pueden ser muy valiosos a la hora de estudiar la razón y las relaciones que pudieran aparecer respecto al precio de los billetes.
+Discutimos si se trata de un dato erróneo o no, y concluimos que no imputaremos estos valores extremos porque pueden ser muy valiosos a la hora de estudiar la razón y las relaciones que pudieran aparecer respecto al precio de los billetes.
+A continuación, distribuimos la edad según la clase: primera clase, segunda clase y tercera clase. 
 
-A continuación distribuimos la edad según la clase: primera clase, segunda clase y tercera clase.
-Los valores extremos aparecen, aunque son los que se dibujan en los límites inferiores los que levantan sospecha ya que se trata de infantes.
-Los extremos superiores, a simple vista, determinan que la media de edad en las clases 2  y 3 es más joven que primera clase (30 año y 25 años frente a 38 años) y que son pocos los mayores de 55 años que viajaron en segunda y tercera clase.
+A continuación, distribuimos la edad según la clase: primera clase, segunda clase y tercera clase. 
 
 
 ```{r}
@@ -258,7 +277,9 @@ geom_boxplot(fill = "cornsilk") +
               theme(axis.text.x = element_text(angle = 45,
                                                hjust = 1))
 ```
-Sobre el número de hermanos o de cónyuges que tenía el pasajero a bordo, vemos que el valor parece ser bastante irrelevante, la media es 0.5, y que en tercera clase hay valores extremos de algúnas pasajeros que viajaban con hermanos o cónyuges.
+Los valores extremos aparecen, aunque son los que se dibujan en los límites inferiores los que levantan sospecha ya que se trata de infantes. Los extremos superiores, a simple vista, determinan que la media de edad en la segunda y tercera clase es más joven que primera clase (30 años y 25 años frente a 38 años) y que son pocos los mayores de 55 años que viajaron en segunda y tercera clase.
+
+Sobre el número de hermanos o de cónyuges que tenía el pasajero a bordo, vemos que el valor parece ser bastante irrelevante, la media es 0.5, y en tercera clase hay valores extremos de algunos pasajeros que viajaban con hermanos o cónyuges.
 
 ```{r}
 #resumen valores de número de hermanos o de cónyuges
@@ -274,7 +295,7 @@ geom_boxplot(fill = "cornsilk") +
 ```
 
 
-Sin embargo el atributo Parch sobre el numero de hijos o padres a bordo, vemos que hay outliers en primera y tercera clase, pero que en segunda clase si se encuentran relaciones de padres o hijos a bordo.
+Sin embargo en el atributo Parch sobre el número de hijos o padres a bordo vemos que hay outliers en primera y tercera clase, pero que en segunda clase si se encuentran relaciones de padres o hijos a bordo.
 
 ```{r}
 #resumen valores de número de padres o hijos a bordo
@@ -296,6 +317,8 @@ Decidimos no tratar los outliers o valores extremos, porque pueden ser datos int
 
 ### 4.1. Selección de los grupos de datos que se quieren analizar/comparar (p. e., si se van a comparar grupos de datos, ¿cuáles son estos grupos y qué tipo de análisis se van a aplicar?)
 
+Tras conocer los atributos y los valores que contiene el conjunto de datos de formas general, podemos definir los siguientes grupos (Tabla 2) para comparar y realizar los análisis que propuestos a continuación.
+
 
 | Grupo                                       | Atributo key                                                                                     
 |---------------------------------------------|----------------------------|
@@ -305,22 +328,25 @@ Decidimos no tratar los outliers o valores extremos, porque pueden ser datos int
 | Niños, adultos, ancianos                    | Age range (generated)      |
 
 
-Supervivencia entre mujeres y hombres -> regresión logística con variable dependiente *Survived* y variable explicativa *Sex*
+Supervivencia entre mujeres y hombres.	->	regresión logística con variable dependiente Survived y variable explicativa Sex.
 
-Supervivencia es mayor en los niños -> contraste de hipótesis sobre la proporción de dos muestras (niños y adultos) atributo *Age*
-Supervivencia es mayor en los adultos mayores de  -> contraste de hipótesis sobre la proporción de dos muestras (niños y adultos) atributo *Age*
+Supervivencia es mayor en los niños.	->	contraste de hipótesis sobre la proporción de supervivencia entre dos muestras (niños y adultos) atributo Age.
 
+Existe relación de supervivencia en niños y clase.	->	contraste de correlación entre Survived, Age y Pclass: regresión logistica.
 
-La supervivencia es mayor en viajeros de primera clase
+La supervivencia es mayor en viajeros de primera clase.	->	Regresión logística.
 
-Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
+Existe relación entre el precio del billete y el puerto de embarque.	->	Test de chi-cuadrado discretizando el precio del billete por intervalos.
 
-Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
+La supervivencia es mayor en pasajeros que tenían cabina asignada.	->	Regresión logística.
+
+Las variables has_cabine y Pclass están relacionadas o son independientes.	->	Test de chi-cuadrado.
+
 
 
 ### 4.2. Comprobación de la normalidad y homogeneidad de la varianza.
 
-El gráfico cuantil-cuantil compara los valores del atributo con los de una variable que se distribuye normalmente(QQ plot)
+Cuando estudiamos la normalidad de los datos podemos comenzar utilizando el gráfico cuantil-cuantil (QQ Plot) para comprobar si los valores de nuestro conjunto se distribuyen normalmente. En nuestro caso, visualizamos a la izquierda la normalidad de la variable Age, en la que parece que presenta cierta tendencia a la normalidad, mientras que la gráfica de Fare claramente no sigue la forma de una distribución normal.
 
 ```{r}
 par(mfrow = c(2, 2))
@@ -333,22 +359,24 @@ qqline(df$Fare)
 
 ```
 
-Otra forma de determinar si las variables Age y Fare siguen una distribución normal es emplear el test de Shapiro-Wilk. 
+Otra forma potente para determinar si las variables Age y Fare siguen una distribución normal es emplear el test de Shapiro-Wilk [5]. Para el test de Shapiro-Wilk suponemos un nivel de significancia igual a 0.05. 
+Siendo la hipótesis nula que la población está distribuida normalmente, si el p-valor es menor al nivel de significancia entonces la hipótesis nula es rechazada (se concluye que los datos no vienen de una distribución normal). Si el p-value es mayor al valor de significancia, se concluye que no se puede rechazar dicha hipótesis.
 
-Para el test de Shapiro-Wilk suponemos un nivel de significancia igual a 0.05. 
-
-Tras aplicar el test mencionado para la variable Age obtenemos un p-valor inferior al test de significancia establecido por lo que podemos determinar que la variable Age no sigue una distribución normal.
 
 ```{r}
 shapiro.test(df$Age)
 ```
 
-También aplicamos el test de Shappiro-Wilk para la variable Fare. Se vuelve a obtener un p-valor inferior al test de significancia por lo que también podemos determinar que la variable Fare no sigue una distribución normal.
+●	Tras aplicar el test mencionado para la variable age obtenemos un p-valor inferior al test de significancia establecido por lo que podemos determinar que la variable Age no sigue una distribución normal.
+●	También aplicamos el test de Shapiro-Wilk para la variable fare. Se vuelve a obtener un p-valor inferior al nivel de significancia por lo que también podemos determinar que la variable Fare no sigue una distribución normal.
+
+
+
 
 ```{r}
 shapiro.test(df$Fare)
 ```
-Dado que ambas variables no siguen una distribución normal, para estudiar la homogeneidad de la varianza se emplea el test de Fligner-Killen suponiendo un nivel de significancia igual a 0.05. Se obtiene un p-valor inferior al nivel de significancia por lo que podemos determinar que las variables Age y Fare presentan varianzas estadísticamente distintas.
+Dado que ambas variables no siguen una distribución normal, para estudiar la  homogeneidad de la varianza se emplea el test de Fligner-Killen [6] suponiendo un nivel de significancia igual a 0.05. Se obtiene un p-valor inferior al nivel de significancia por lo que podemos determinar que las variables Age y Fare presentan varianzas estadísticamente distintas.
 
 ```{r}
 fligner.test(Age ~ Fare, data=df)
@@ -359,11 +387,15 @@ fligner.test(Age ~ Fare, data=df)
 
 #### Supervivencia entre mujeres y hombres
 
-A partir de un diagrama de barras podemos observar que la mayor parte de las personas que sobrevivieron al naufragio del Titanic eran mujeres. Comprobaremos este hecho con el diseño de un modelo de regresión logística con variable dependiente Survived y variable explicativa Sex.
+A partir de un diagrama de barras podemos observar que la mayor parte de las personas que sobrevivieron al naufragio del Titanic eran mujeres. Comprobaremos este hecho con el diseño de un modelo de regresión logística con variable dependiente Survived y variable explicativa Sex. 
+
 ```{r}
 ggplot(df, aes(x=as.factor(Survived), fill=Sex)) + geom_bar(position = "fill") + labs(x="Survived", y="Ratio") + ggtitle("Supervivencia entre mujeres y hombres") + theme(plot.title = element_text(hjust = 0.5))
 ```
+
 Creamos el modelo de regresión logística y obtenemos un coeficiente asociado al valor male de la variable Sex negativo (columna Estimate) lo que indica que la probabilidad de sobrevivir al naufragio del Titanic era menor en hombres que en mujeres.
+
+
 ```{r}
 model_surv_sex <- glm(as.factor(Survived)~Sex, family=binomial(link=logit), data=df)
 summary(model_surv_sex)
@@ -372,15 +404,16 @@ summary(model_surv_sex)
 #### Supervivencia edad es mayor en los niños
 
 (La proporción de niños que sobrevivieron es mayor que la proporción de adultos que sobrevivieron)
+
 Para determinar si la supervivencia es mayor en viajeros en los niños se empleará un contraste de hipótesis sobre la proporción de dos muestras (niños y adultos). Se consideran niños a toda aquella persona menor de 18 años.
 
 
-Se definen las hipótesis nula y alternativa siguientes:
+Se definen las hipótesis nula y alternativa siguientes: 
 
 - ${H_0}$: La proporción de niños que sobrevivieron es igual a la proporción de adultos.
 - ${H_1}$: La proporción de niños que sobrevivieron es mayor a la proporción de adultos.
 
-Realizamos el contraste de hipótesis con la función prop.test y obtenemos un p-valor igual a 0.001122. Se emplea un porcentaje de confianza del 95 por ciento por lo que el nivel de significancia es igual a 0.05 (1 - 95/100). Debido a que el p-valor es inferior que el nivel de significancia podemos rechazar la hipótesis nula, aceptar la hipótesis alternativa y afirmar con un 95 por ciento de confianza que la proporción de los niños que sobrevivieron es mayor que la proporción de adultos.
+Realizamos el contraste de hipótesis con la función prop.test y obtenemos un p-value igual a 0.001122. Se emplea un porcentaje de confianza del 95 por ciento por lo que el nivel de significancia es igual a 0.05 (1 - 95/100). Debido a que el p-value es inferior que el nivel de significancia podemos rechazar la hipótesis nula, aceptar la hipótesis alternativa y afirmar con un 95 por ciento de confianza que la proporción de los niños que sobrevivieron es mayor que la proporción de adultos.
 
 ```{r}
 df.kids <- df %>% filter(Age < 18)
@@ -391,38 +424,13 @@ n.kids <- nrow(df.kids)
 n.adults <- nrow(df.adults)
 prop.test(c(kids.surv, adults.surv), c(n.kids,n.adults), alternative = "greater")
 ```
-
-
-#### Supervivencia es mayor en niños que en adultos
-
-(La proporción de niños que sobrevivieron es mayor que la proporción de adultos que sobrevivieron)
-Para determinar si la supervivencia es mayor en viajeros en los niños se empleará un contraste de hipótesis sobre la proporción de dos muestras (niños y adultos). Se consideran niños a toda aquella persona menor de 18 años.
-
-
-Se definen las hipótesis nula y alternativa siguientes:
-
-- ${H_0}$: La proporción de niños que sobrevivieron es igual a la proporción de adultos.
-- ${H_1}$: La proporción de niños que sobrevivieron es mayor a la proporción de adultos.
-
-Realizamos el contraste de hipótesis con la función prop.test y obtenemos un p-valor igual a 0.001122. Se emplea un porcentaje de confianza del 95 por ciento por lo que el nivel de significancia es igual a 0.05 (1 - 95/100). Debido a que el p-valor es inferior que el nivel de significancia podemos rechazar la hipótesis nula, aceptar la hipótesis alternativa y afirmar con un 95 por ciento de confianza que la proporción de los niños que sobrevivieron es mayor que la proporción de adultos.
-
-```{r}
-df.kids <- df %>% filter(Age < 18)
-df.adults <- df %>% filter(Age >= 18)
-kids.surv <- sum(df.kids$Survived == 1)
-adults.surv <- sum(df.adults$Survived == 1)
-n.kids <- nrow(df.kids)
-n.adults <- nrow(df.adults)
-prop.test(c(kids.surv, adults.surv), c(n.kids,n.adults), alternative = "greater")
-```
-
-
 
 
 
 #### La supervivencia es mayor en viajeros de primera clase
 
-En primer lugar observamos gráficamente la proporción de pasajeros de cada clase que sobrevivieron y los que no. La proporción de pasajeros de la primera clase que no sobrevivieron es menor que la proporción del restod de clases. Por otro lado, la proporción de personas de la primera clase que sobrevivieron es la mayor de las tres clases.
+En primer lugar observamos gráficamente la proporción de pasajeros de cada clase que sobrevivieron y los que no. La proporción de pasajeros de la primera clase que no sobrevivieron es menor que la proporción del resto de clases. Por otro lado, la proporción de personas de la primera clase que sobrevivieron es la mayor de las tres clases.
+
 ```{r}
 ggplot(df, aes(x=as.factor(Survived), fill=Pclass)) + geom_bar(position = "fill") + labs(x="Survived", y="Ratio") + ggtitle("Supervivencia entre pasajeros de distintas clases") + theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -448,7 +456,9 @@ El odds-ratio de la tercera clase también es inferior a la unidad por lo que po
 
 Por todo ello podemos concluir que la supervivencia es mayor si se viaja en la primera clase.
 
-### Existe relacion entre la supervivencia, la edad y la clase
+### Existe relación de supervivencia en niños y clase
+
+Se quiere evaluar si existe correlación en el factor de ser niño y viajar en primera, segunda o tercera clase. 
 
 ```{r}
 elim.names <- c ("has_cabin", "Age_imp")
@@ -456,11 +466,14 @@ elim.pos <- which (names(df) %in% elim.names)
 df.corr <- df[, -elim.pos]
 df.corr$Pclass <- as.numeric(df.corr$Pclass)
 df.corr <- df.corr %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare))
-
 cor(df.corr)
 
 chart.Correlation(df.corr)
 ```
+En general se observa que parece no haber buenas relaciones lineales entre las variables, no hay evidencia de relaciones cercanas a -1 o 1, aunque tenemos algunos coeficientes de relación que no son buenos pero existe relación lineal: PClass con Age (-0.41), Survived con PClass(-0.34) Si observamos la gráfica generada con R, nos muestra en un tamaño de fuente superior las correlaciones con mejor coeficiente.
+
+Analizaremos si existen relaciones utilizando la regresión logística:
+Agrupamos a los pasajeros por edad: adulto (+18 años), adolescente(11-17 años) y niños (0 -10 años).
 
 
 
@@ -468,11 +481,14 @@ chart.Correlation(df.corr)
 df$age_label <- cut(df$Age, breaks = c(0,10,18,100),
 labels = c("kid","teenager", "adult"))
 
-
 model_surv_class <- glm(as.factor(Survived)~Pclass+age_label, family=binomial(link=logit), data=df)
 summary(model_surv_class)
 
 ```
+
+
+Se observa que las variables son Pclass y Age son significativas porque el p-value de cada una de ellas es <0,05 proporcionado por el estadístico de Wald. El p-value de cada variable predictora rechaza la hipótesis nula (coeficiente = 0). Podemos asumir que las variables predictoras tienen influencia en el modelo predictivo ya que cambiarán los valores en la variable dependiente Survived.
+
 ```{r}
 #Predicción ser niño (<10 años) y viajar en primera clase
 prediction_data <- list("age_label" = "kid", "Pclass" = "1")
@@ -487,12 +503,24 @@ prediction_data <- list("age_label" = "kid", "Pclass" = "3")
 predict(model_surv_class, newdata = prediction_data, type="response")
 ```
 
-#### Existe relacion entre el precio del billete, el puerto de embarque y la Pclase 
+En resumen, podemos asumir que si las probabilidades de supervivencia de ser niño y viajar en tercera clase son menores que si viaja en las otras clases. 
+Interpretación:
+	84,5% probabilidades de sobrevivir si es niño de primer clase
+	72,5% probabilidades de sobrevivir si es niño de segunda clase
+	45,5 % probabilidades de sobrevivir si es niño de tercera clase
 
-Los de primera clase pagaron entre 113 y 512.3 libras esterlinas, mientras que quien abordó en segunda clase, pagó 75 libras por cada boleto. Quienes lo hicieron en tercera clase, pagaron entre 30 y 70 libras esterlinas por cada boleto.
+
+#### Existe relación entre el precio del billete y el puerto de embarque 
+
+Volvemos a revisar la distribución de los precios de los billetes y vemos que la media de precio fue 32.097 libras esterlinas y que hubo algún pasajero que llegó a pagar 512.329 libras esterlinas. Como tenemos valores extremos que son precios de billetes excepcionales, nos estropean la media, por lo que hemos de trabajar nuestros rangos sin tener en cuenta estos outliers.
 
 
+Rangos de precio:
+	Económico: Entre 0 y 8.000
+	Normal: 8.000 y 70.000
+	Excesivo: Más de 70.000
 
+Para abordar si existen diferencias en los precios del billete según el puerto de embarque realizamos un test de independencia de dos variables cualitativas. 
 
 ```{r}
 
@@ -508,25 +536,21 @@ df.chi <- df %>% select(-c(Sex, Cabin, PassengerId, SibSp, Parch, Age_imp,age_la
 df.chi$ticket_range <- as.numeric(df.chi$ticket_range)
 df.chi$Embarked_value <- as.numeric(df.chi$Embarked_value)
 
-
 chisq.test(df.chi)
-
 
 
 ```
 
 
-
+El test obtiene un p-valor 1 y es mayor que el nivel de significancia establecido (0.05). Por lo tanto, si las frecuencias observadas se alejan significativamente de los valores esperados, podremos concluir que existe una relación de dependencia entre las variables. Podemos aceptar la hipótesis nula por lo que hay suficiente evidencia para afirmar que existe dependencia entre el precio del ticket y el puerto de embarque con un nivel de confianza del 95%.
 
 ### La supervivencia es mayor en pasajeros con cabina
 
+Agrupamos a los pasajeros según el atributo has_cabine que habíamos creado al principio del análisis del conjunto de datos, los pasajeros “Con cabina” y “Sin cabina” y generamos el modelo logístico para ver si existe correlación entre los atributos.
 
 ```{r}
-
 model_surv_class <- glm(as.factor(Survived)~Pclass, family=binomial(link=logit), data=df)
 summary(model_surv_class)
-
-
 
 ```
 
@@ -538,13 +562,17 @@ df.chi <- df %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare
 df.chi$bool_cabin <- ifelse(df$has_cabin %in% "Sin cabina", 0, 1)
 df.chi$Pclass <- as.numeric(df.chi$Pclass)
 class(df.chi$Pclass)
-#df.chi <- df.chi %>% select(-c(Sex, Cabin, Embarked, PassengerId, SibSp, Parch, Fare, Age_imp,age_label, has_cabin))
-
 chisq.test(df.chi)
-
 ```
 
-#### Los pasajeros que no tienen cabina asignada son los de segunda y tercera clase
+
+Si utilizamos el modelo para realizar dos predicciones de supervivencia de un pasajero con cabina obtenemos 0,6633 y para la predicción de un pasajero sin cabina se obtiene 0,2998 que son las probabilidades de la variable dependiente, por lo que podemos interpretar que existe un:
+
+	66,3% probabilidades de sobrevivir si el pasajero tenía cabina asignada
+	29,9% probabilidades de sobrevivir si el pasajero no tenía cabina asignada
+	
+Por lo que creemos que quizá los pasajeros con cabinas tenían mejor accesibilidad a los botes salvavidas que los que no tenían cabina.
+
 
 
 ```{r}
@@ -552,10 +580,8 @@ chisq.test(df.chi)
 model_surv_class <- glm(as.factor(Survived)~has_cabin, family=binomial(link=logit), data=df)
 summary(model_surv_class)
 
-
 prediction_data <- list("has_cabin" = "Con cabina")
 predict(model_surv_class, newdata = prediction_data, type="response")
-
 
 prediction_data <- list("has_cabin" = "Sin cabina")
 predict(model_surv_class, newdata = prediction_data, type="response")
@@ -563,10 +589,10 @@ predict(model_surv_class, newdata = prediction_data, type="response")
 ```
 
 
+
 ### La supervivencia menor en pasajeros que viajan solos
 
 La última relación que nos quedará analizar es si la probabilidad de sobrevivir es menor si se viajaba solo en el Titanic, es decir sin hermanos/cónyuges (SibSp) o hijos/padres (Parch) a bordo.
-
 
 ```{r}
 
@@ -577,8 +603,10 @@ df$has_family <- ifelse(df$has_sibsp ==  "sibs" | df$has_Parch ==  "parch" , "fa
 
 ggplot(data=df, mapping=aes(has_family)) + geom_bar(fill="#73edff") + ggtitle("Distribución acompañantes") + theme(plot.title = element_text(hjust = 0.5))
 
+
 model_surv_class <- glm(as.factor(Survived)~has_family, family=binomial(link=logit), data=df)
 summary(model_surv_class)
+
 
 
 prediction_data <- list("has_family" = "alone")
@@ -588,12 +616,34 @@ predict(model_surv_class, newdata = prediction_data, type="response")
 prediction_data <- list("has_family" = "family")
 predict(model_surv_class, newdata = prediction_data, type="response")
 
+
+```
+
+Obtenemos que la probabilidad de sobrevivir si se viajaba solo es de 30% frente a 50% si se viajaba con algún familiar acompañante. Esto tiene sentido, ya que el acompañante podría ser un niño, y dejaban acceder a los botes salvavidas a un adulto por niño.
+
+
+
+Finalmete el fichero generado se adjuntará a la entrega de esta práctica.
+
+```{r chunck63}
+write.csv(df,"newDataSet.csv", row.names = FALSE)
+cat("Archivo exportado", "\n")
 ```
 
 
 
-## 6. Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema? 
+## 6.Conclusiones
 
+
+Una de las primeras conclusiones es que sobrevivieron tres veces más mujeres que hombres. Una explicación podría deberse al protocolo de evacuación “Mujeres y niños primero”, y así fue en el Titanic, pero no por protocolo, ya que entre el pánico del naufragio fue el de “sálvese quien pueda”, si no por la orden del capitán de disparar a todo el que no diera paso a mujeres y niños en la entrada a los botes salvavidas.
+Por otro lado, la edad de los pasajeros es bastante similar entre supervivientes y fallecidos, con la excepción de los niños menores de 10 años donde el porcentaje de supervivencia es superior al de toda la muestra.
+
+Por otra parte, los pasajeros con hijos/padres a bordo fueron las más afortunadas. Con ninguna familia, solo un tercio sobrevivió. En el caso de familiares no sanguíneos o esposa/o, se cumple una relación parecida: las personas con un familiar sobrevivieron más que las que iban solas.
+Cruzando las variables Survived, Age y Pclass observamos que los niños de tercera clase representan gran parte de los menores que perdieron la vida en la catástrofe. En primera clase solo había cuatro niños, de los cuales murió uno. Los niños de segunda clase (17) , sobrevivieron. Las personas más ancianas murieron. En los adultos (entre 20 y 50 años), las personas de condición más humilde representaron la mayor proporción de los muertos.
+
+Los billetes de primera clase costaban mucho más dinero que los de la segunda y tercera clase, por lo que podemos inferir que el precio medio de los tickets de las personas que sobrevivieron era superior al de los que fallecieron. 
+
+Gracias al procesamiento de este conjunto de datos, podemos construir modelos de predicción con algoritmos de machine learning que permitirán decirnos con precisión la probabilidad de supervivencia dependiendo de los factores: sexo, clase y si tiene al menos un hijo a bordo. 
 
 
 
@@ -603,4 +653,4 @@ predict(model_surv_class, newdata = prediction_data, type="response")
 |---------------------------------------------|----------------------------|
 | Investigación previa                        | MAFE, NJCF                 |
 | Redacción de las respuestas                 | MAFE, NJCF                 |
-| Desarrollo cñodigo                          | MAFE, NJCF                 |
+| Desarrollo código                           | MAFE, NJCF                 |
