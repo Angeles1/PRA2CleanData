@@ -367,8 +367,9 @@ Siendo la hipótesis nula que la población está distribuida normalmente, si el
 shapiro.test(df$Age)
 ```
 
-●	Tras aplicar el test mencionado para la variable age obtenemos un p-valor inferior al test de significancia establecido por lo que podemos determinar que la variable Age no sigue una distribución normal.
-●	También aplicamos el test de Shapiro-Wilk para la variable fare. Se vuelve a obtener un p-valor inferior al nivel de significancia por lo que también podemos determinar que la variable Fare no sigue una distribución normal.
+Tras aplicar el test mencionado para la variable age obtenemos un p-valor inferior al test de significancia establecido por lo que podemos determinar que la variable Age no sigue una distribución normal.
+
+	También aplicamos el test de Shapiro-Wilk para la variable fare. Se vuelve a obtener un p-valor inferior al nivel de significancia por lo que también podemos determinar que la variable Fare no sigue una distribución normal.
 
 
 
